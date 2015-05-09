@@ -4,7 +4,23 @@ FORMAT: 1A
 
 Admiral is a deployment management system for Fleet and CoreOS. Unlike other deployment systems, Admiral also allows for automatic deployment and scaling of Fleet units.
 
-# Admiral Root [/v1]
+# Configuration
+
+Configuration for Admiral is stored directly in Etcd under the namespace specified by the command line parameter `--ns` (the default is `/admiral`). If this namespace is changed after the application has been launched for the first time already, then unexpected behavior will occur, as Admiral will likely believe it was just installed fresh and without any configuration set.
+
+All configuration keys listed in this section are children of the root namespace. For example, a configuration item listed as `/config/enabled` will be located at `/admiral/config/enabled` with the default namespace.
+
+## API Configuration
+
+Configuration items for the general API.
+
+### Authentication and Registration
+
+#### `/config/registration/enabled`
+
+A boolean indicating whether registration is enabled or not. If the configuration item does not exist, the server will default to disabling registration (i.e. disable registration).
+
+# Admiral API Root [/v1]
 
 This resource simply represents the root of the Admiral API. It provides a basic JSON response as validation that the API server is running.
 
