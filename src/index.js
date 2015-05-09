@@ -13,9 +13,10 @@ IoC.loader(IoC.node('src'));
 // Get the logger
 var Log = IoC.create('logger');
 
-var express = require('express');
-var app = express();
+// Get the application
+var app = IoC.create('app');
 
+// Boot the application
 app.listen(PORT, function() {
     Log.info('Application listening on port', PORT);
 });
