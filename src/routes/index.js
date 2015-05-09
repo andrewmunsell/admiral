@@ -8,9 +8,10 @@ exports = module.exports = function(app) {
     /**
      * Index route
      */
-    app.get('/', function(req, res) {
+    app.get('/v1', function(req, res) {
         return res.json({
-            name: 'Admiral API'
+            name: 'Admiral API',
+            version: 1
         });
     });
 };
