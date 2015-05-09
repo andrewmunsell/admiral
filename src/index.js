@@ -16,6 +16,9 @@ var Log = IoC.create('logger');
 // Get the application
 var app = IoC.create('app');
 
+// Load the routes
+IoC.create('routes');
+
 // Boot the application
 app.listen(PORT, function() {
     Log.info('Application listening on port', PORT);
