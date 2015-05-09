@@ -16,6 +16,12 @@ var nconf = require('nconf')
             describe: 'Port for Etcd',
             alias: 'port',
             default: 4001
+        },
+
+        'ns': {
+            describe: 'Root namespace for storing configuration.',
+            alias: 'namespace',
+            default: '/admiral'
         }
     });
 
