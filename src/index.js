@@ -10,9 +10,12 @@ var PORT = process.env.PORT || 3000;
 var IoC = require('electrolyte');
 IoC.loader(IoC.node('src'));
 
+// Get the logger
+var Log = IoC.create('logger');
+
 var express = require('express');
 var app = express();
 
 app.listen(PORT, function() {
-    console.log('Application listening on port', PORT);
+    Log.info('Application listening on port', PORT);
 });
