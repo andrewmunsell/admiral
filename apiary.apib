@@ -1,0 +1,76 @@
+FORMAT: 1A
+
+# Admiral
+
+Admiral is a deployment management system for Fleet and CoreOS. Unlike other deployment systems, Admiral also allows for automatic deployment and scaling of Fleet units.
+
+# Admiral Root [/v1]
+
+This resource simply represents the root of the Admiral API. It provides a basic JSON response as validation that the API server is running.
+
+## Retrieve the API Information [GET]
+
++ Response 200 (application/json)
+
+        {
+            "name": "Admiral API",
+            "version": 1
+        }
+
+## Group Authentication
+
+Resources related to authenticating users.
+
+## Login [/v1/login]
+
+### Login [POST]
+
+Authenticates a user and returns a token that the client should use for further interactions with the API server.
+
+Requests should be made with a JSON object containing the following items:
+
++ Request (application/json)
+
+                {
+                    "username": "johndoe",
+                    "password": "password"
+                }
+
++ Response 200 (application/json)
+
+                {
+                    "token": "API token"
+                }
+                
++ Response 401 (application/json)
+
+                {
+                    "error": 401,
+                    "message": "The specified user was invalid."
+                }
+
+## Registration [/v1/register]
+
+### Register [POST]
+
+Registers a user with the specified information, and returns a new token if the registration was successful. Registration must be enabled on the server or this endpoint will return an error.
+
++ Request (application/json)
+
+                {
+                    "username": "johndoe",
+                    "password": "password"
+                }
+
++ Response 200 (application/json)
+
+                {
+                    "token": "API token"
+                }
+                
++ Response 500 (application/json)
+
+                {
+                    "error": 500,
+                    "message": "The server is not accepting registration."
+                }
