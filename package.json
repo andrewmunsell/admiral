@@ -21,6 +21,7 @@
         "electrolyte": "^0.0.6",
         "nconf": "^0.7.1",
         "node-etcd": "^4.0.0",
+        "subclass-error": "^0.1.1",
         "winston": "^1.0.0"
     }
 }
