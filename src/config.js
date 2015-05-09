@@ -4,12 +4,13 @@
  * @copyright 2015 WizardApps
  */
 
-var Etcd = require('node-etcd');
+var Promise = require('bluebird'),
+    Etcd = require('node-etcd');
 
 exports = module.exports = function(nconf) {
     var _etcd = new Etcd(nconf.get('h'), nconf.get('p'));
 
-    return {
+    return Promise.promisifyAll({
         /**
          * Get a key, prefixing the key with the global namespace
          * @returns {*}
@@ -39,7 +40,7 @@ exports = module.exports = function(nconf) {
 
             return _etcd.del.call(_etcd, arguments);
         }
-    };
+    });
 };
 
 exports['@singleton'] = true;
