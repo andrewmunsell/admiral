@@ -7,7 +7,11 @@
 var express = require('express');
 
 exports = module.exports = function() {
-    return express();
+    var app = express();
+
+    app.use(express.static(__dirname + '/../public'));
+
+    return app;
 };
 
 exports['@singleton'] = true;
