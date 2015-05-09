@@ -1,0 +1,21 @@
+{
+    "name": "admiral",
+    "description": "Deployment and unit management system for Fleet",
+    "version": "0.0.1",
+    "repository": "https://github.com/andrewmunsell/admiral",
+
+    "scripts": {
+        "start": "node src/index.js"
+    },
+
+    "engines": {
+        "node": ">=0.12.0"
+    },
+
+    "dependencies": {
+        "express": "^4.0.0",
+
+        "electrolyte": "^0.0.6",
+        "winston": "^1.0.0"
+    }
+}
