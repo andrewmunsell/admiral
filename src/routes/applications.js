@@ -83,6 +83,41 @@ exports = module.exports = function(app, config) {
                 res.end();
             });
     });
+
+    /**
+     * Destroy the specified application
+     */
+    app.delete('/v1/applications/:id', function(req, res) {
+        config.getAsync('/applications/' + req.params.id)
+            .spread(function(result) {
+                return config.delAsync('/applications/' + req.params.id);
+            })
+            .spread(function(result) {
+                res.json({
+                    ok: true
+                });
+            })
+            .catch(function(err) {
+                if(err.errorCode == 100) {
+                    res
+                        .status(404)
+                        .json({
+                            error: 404,
+                            message: 'The specified application could not be found.'
+                        });
+                } else {
+                    res
+                        .status(500)
+                        .json({
+                            error: 500,
+                            message: 'There was a problem deleting the specified application.'
+                        });
+                }
+            })
+            .finally(function() {
+                res.end();
+            });
+    });
 };
 
 exports['@singleton'] = true;
