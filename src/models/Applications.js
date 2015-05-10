@@ -4,6 +4,11 @@
  * @copyright 2015 WizardApps
  */
 
+var moment = require('moment'),
+    Promise = require('bluebird'),
+    uuid = require('node-uuid'),
+    validate = require('validate.js');
+
 exports = module.exports = function(config) {
     var Applications = {
         /**
@@ -22,6 +27,43 @@ exports = module.exports = function(config) {
                     } else {
                         return null;
                     }
+                });
+        },
+
+        /**
+         * Create a new application with the specified parameters
+         * @param params
+         */
+        create: function(params) {
+            return Promise.resolve()
+                .then(function() {
+                    var constraints = {
+                        name: {
+                            presence: true,
+                            length: {
+                                maximum: 36
+                            }
+                        }
+                    };
+
+                    var errors = validate(params, constraints);
+                    if(errors) {
+                        throw errors;
+                    }
+
+                    var id = uuid.v4();
+
+                    var app = {
+                        id: id,
+                        name: params.name,
+
+                        createdAt: moment().toISOString()
+                    };
+
+                    return config.setAsync('/applications/' + id, JSON.stringify(app));
+                })
+                .spread(function(result) {
+                    return JSON.parse(result.node.value);
                 });
         },
 

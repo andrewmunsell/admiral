@@ -36,46 +36,16 @@ exports = module.exports = function(app, config, Applications) {
      * Create a new application
      */
     app.post('/v1/applications', function(req, res) {
-        var constraints = {
-            name: {
-                presence: true,
-                length: {
-                    maximum: 36
-                }
-            }
-        };
-
-        var errors = validate(req.body, constraints);
-        if(errors) {
-            return res
-                .status(400)
-                .json(errors)
-                .end();
-        }
-
-        var id = uuid.v4();
-
-        var app = {
-            id: id,
-            name: req.body.name,
-            createdAt: moment().toISOString()
-        };
-
-        config.setAsync('/applications/' + id, JSON.stringify(app))
-            .spread(function(result) {
+        Applications.create(req.body)
+            .then(function(application) {
                 res
-                    .json(JSON.parse(result.node.value));
+                    .json(application);
             })
-            .catch(function(err) {
-                res
-                    .status(500)
-                    .json({
-                        error: 500,
-                        message: 'There was a problem creating the application.'
-                    });
-            })
-            .finally(function() {
-                res.end();
+            .catch(function(errors) {
+                return res
+                    .status(400)
+                    .json(errors)
+                    .end();
             });
     });
 
