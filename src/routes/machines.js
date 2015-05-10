@@ -5,10 +5,15 @@
  */
 
 exports = module.exports = function(app, config, fleet) {
+    /**
+     * Get the machines in the cluster
+     */
     app.get('/v1/machines', function(req, res) {
         fleet.list_machinesAsync()
             .then(function(machines) {
-                res.json(machines);
+                res
+                    .json(machines)
+                    .header('Cache-Control', 'private, max-age=60');
             })
             .catch(function(err) {
                 res
