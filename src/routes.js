@@ -8,6 +8,9 @@ var IoC = require('electrolyte');
 
 exports = module.exports = function() {
     IoC.create('routes/index');
+
+    // Machines
+    IoC.create('routes/machines');
 };
 
 exports['@singleton'] = true;
