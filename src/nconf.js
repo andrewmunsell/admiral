@@ -6,6 +6,17 @@
 
 var nconf = require('nconf')
     .argv({
+        't': {
+            describe: 'Tunnel to use to connect to Fleet.',
+            alias: 'tunnel',
+            default: null
+        },
+
+        'tunnel-username': {
+            describe: 'Username to use to connect to Fleet through an SSH tunnel.',
+            default: 'core'
+        },
+
         'h': {
             describe: 'Host for Etcd',
             alias: 'host',
