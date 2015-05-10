@@ -25,6 +25,7 @@
         "node-etcd": "^4.0.0",
         "node-uuid": "^1.4.2",
         "subclass-error": "^0.1.1",
+        "validate.js": "^0.7.1",
         "winston": "^1.0.0"
     }
 }
