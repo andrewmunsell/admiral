@@ -9,6 +9,9 @@ var IoC = require('electrolyte');
 exports = module.exports = function() {
     IoC.create('routes/index');
 
+    // Applications
+    IoC.create('routes/applications');
+
     // Machines
     IoC.create('routes/machines');
 };
