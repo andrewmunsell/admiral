@@ -41,6 +41,24 @@ exports = module.exports = function(config) {
                         throw new Error('There was a problem fetching the application.');
                     }
                 });
+        },
+
+        /**
+         * Delete the specified application
+         * @param id
+         */
+        del: function(id) {
+            return config.delAsync('/applications/' + id)
+                .spread(function(result) {
+                    return true;
+                })
+                .catch(function(err) {
+                    if(err.errorCode == 100) {
+                        throw new Error('The specified application does not exist.');
+                    } else {
+                        return false;
+                    }
+                });
         }
     };
 

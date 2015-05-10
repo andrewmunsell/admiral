@@ -157,22 +157,12 @@ exports = module.exports = function(app, config, Applications) {
      * Destroy the specified application
      */
     app.delete('/v1/applications/:id', function(req, res) {
-        config.getAsync('/applications/' + req.params.id)
-            .spread(function(result) {
-                return config.delAsync('/applications/' + req.params.id);
-            })
-            .spread(function(result) {
-                res.json({
-                    ok: true
-                });
-            })
-            .catch(function(err) {
-                if(err.errorCode == 100) {
+        Applications.del(req.params.id)
+            .then(function(result) {
+                if(result) {
                     res
-                        .status(404)
                         .json({
-                            error: 404,
-                            message: 'The specified application could not be found.'
+                            ok: true
                         });
                 } else {
                     res
@@ -182,6 +172,14 @@ exports = module.exports = function(app, config, Applications) {
                             message: 'There was a problem deleting the specified application.'
                         });
                 }
+            })
+            .catch(function(err) {
+                res
+                    .status(404)
+                    .json({
+                        error: 404,
+                        message: 'The specified application could not be found.'
+                    });
             })
             .finally(function() {
                 res.end();
