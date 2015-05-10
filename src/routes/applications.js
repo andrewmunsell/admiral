@@ -85,6 +85,38 @@ exports = module.exports = function(app, config) {
     });
 
     /**
+     * Get information for the specified application
+     */
+    app.get('/v1/applications/:id', function(req, res) {
+        config.getAsync('/applications/' + req.params.id)
+            .spread(function(result) {
+                res
+                    .header('Cache-Control', 'private, max-age=60')
+                    .json(JSON.parse(result.node.value));
+            })
+            .catch(function(err) {
+                if(err.errorCode == 100) {
+                    res
+                        .status(404)
+                        .json({
+                            error: 404,
+                            message: 'The specified application doesn\'t exist.'
+                        })
+                } else {
+                    res
+                        .status(500)
+                        .json({
+                            error: 500,
+                            message: 'There was a problem retrieving the applications.'
+                        });
+                }
+            })
+            .finally(function() {
+                res.end();
+            });
+    });
+
+    /**
      * Destroy the specified application
      */
     app.delete('/v1/applications/:id', function(req, res) {
