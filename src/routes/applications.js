@@ -119,6 +119,48 @@ exports = module.exports = function(app, config) {
     });
 
     /**
+     * Get the services for the specified application
+     */
+    app.get('/v1/applications/:id/services', function(req, res) {
+        config.getAsync('/services', { recursive: true })
+            .spread(function(result) {
+                return (result.node.nodes || [] ).map(function(node) {
+                    return JSON.parse(node.value);
+                });
+            })
+            .then(function(services) {
+                return services.filter(function(service) {
+                    return service.application == req.params.id;
+                });
+            })
+            .then(function(services) {
+                res
+                    .header('Cache-Control', 'private, max-age=60')
+                    .json(services);
+            })
+            .catch(function(err) {
+                if(err.errorCode == 100 && err.error.cause.indexOf('/services') < 0) {
+                    res
+                        .status(404)
+                        .json({
+                            error: 404,
+                            message: 'The specified application doesn\'t exist.'
+                        });
+                } else {
+                    res
+                        .status(500)
+                        .json({
+                            error: 500,
+                            message: 'There was a problem retrieving the list of services.'
+                        });
+                }
+            })
+            .finally(function() {
+                res.end();
+            });
+    });
+
+    /**
      * Destroy the specified application
      */
     app.delete('/v1/applications/:id', function(req, res) {
