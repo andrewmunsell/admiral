@@ -4,7 +4,8 @@
  * @copyright 2015 WizardApps
  */
 
-var uuid = require('node-uuid'),
+var moment = require('moment'),
+    uuid = require('node-uuid'),
     validate = require('validate.js');
 
 exports = module.exports = function(app, config) {
@@ -63,7 +64,8 @@ exports = module.exports = function(app, config) {
 
         var app = {
             id: id,
-            name: req.body.name
+            name: req.body.name,
+            createdAt: moment().toISOString()
         };
 
         config.setAsync('/applications/' + id, JSON.stringify(app))
