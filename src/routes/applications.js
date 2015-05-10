@@ -8,31 +8,24 @@ var moment = require('moment'),
     uuid = require('node-uuid'),
     validate = require('validate.js');
 
-exports = module.exports = function(app, config) {
+exports = module.exports = function(app, config, Applications) {
     /**
      * Get the applications
      */
     app.get('/v1/applications', function(req, res) {
-        config.getAsync('/applications', { recursive: true })
-            .spread(function(result) {
+        Applications.all()
+            .then(function(applications) {
                 res
                     .header('Cache-Control', 'private, max-age=60')
-                    .json((result.node.nodes || [] ).map(function(node) {
-                        return JSON.parse(node.value);
-                    }));
+                    .json(applications);
             })
             .catch(function(err) {
-                if(err.errorCode == 100) {
-                    res
-                        .json([]);
-                } else {
-                    res
-                        .status(500)
-                        .json({
-                            error: 500,
-                            message: 'There was a problem retrieving the list of applications.'
-                        });
-                }
+                res
+                    .status(500)
+                    .json({
+                        error: 500,
+                        message: 'There was a problem retrieving the list of applications.'
+                    });
             })
             .finally(function() {
                 res.end();
@@ -197,4 +190,4 @@ exports = module.exports = function(app, config) {
 };
 
 exports['@singleton'] = true;
-exports['@require'] = ['app', 'config'];
+exports['@require'] = ['app', 'config', 'models/Applications'];
