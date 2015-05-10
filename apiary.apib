@@ -109,6 +109,46 @@ Retrieves all of the applications.
                     }
                 ]
 
+### Create Application [POST]
+
+Creates a new application
+
++ Request (application/json)
+
+                {
+                    "name": "Application Name"
+                }
+
++ Response 200 (application/json)
+
+                {
+                    "id": "9ce05e8c-19fe-4872-b4c6-6b6c6a6968e1",
+                    "name": "Application Name"
+                }
+
+## Application [/v1/applications/{application_id}]
+
+### Get Application [GET]
+
+Get the specified application by its ID.
+
++ Response 200 (application/json)
+
+                {
+                    "id": "9ce05e8c-19fe-4872-b4c6-6b6c6a6968e1",
+                    "name": "Application Name"
+                }
+
+### Delete Application [DELETE]
+
+Delete the application with the specified ID.
+
++ Response 200 (application/json)
+
+                {
+                    "ok": true
+                }
+
 ## Group Cluster
 
 ## Machines [/v1/machines]
