@@ -12,8 +12,8 @@ exports = module.exports = function(app, config, fleet) {
         fleet.list_machinesAsync()
             .then(function(machines) {
                 res
-                    .json(machines)
-                    .header('Cache-Control', 'private, max-age=60');
+                    .header('Cache-Control', 'private, max-age=60')
+                    .json(machines);
             })
             .catch(function(err) {
                 res
