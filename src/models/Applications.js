@@ -23,6 +23,24 @@ exports = module.exports = function(config) {
                         return null;
                     }
                 });
+        },
+
+        /**
+         * Get a single application, or null if the application does not exist.
+         * @param id
+         */
+        get: function(id) {
+            return config.getAsync('/applications/' + id)
+                .spread(function(result) {
+                    return JSON.parse(result.node.value);
+                })
+                .catch(function(err) {
+                    if(err.errorCode == 100) {
+                        return null;
+                    } else {
+                        throw new Error('There was a problem fetching the application.');
+                    }
+                });
         }
     };
 
