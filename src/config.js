@@ -38,7 +38,7 @@ exports = module.exports = function(nconf) {
         del: function() {
             arguments[0] = nconf.get('ns') + arguments[0];
 
-            return _etcd.del.call(_etcd, arguments);
+            return _etcd.del.apply(_etcd, arguments);
         }
     });
 };
