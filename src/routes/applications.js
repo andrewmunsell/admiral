@@ -62,6 +62,16 @@ exports = module.exports = function(app, config, Applications, Services) {
     app.get('/v1/applications/:id', function(req, res) {
             Applications.get(req.params.id)
                 .then(function(application) {
+                    return Promise.all([ application, Services.all() ]);
+                })
+                .spread(function(application, services) {
+                    application.services = services.filter(function(service) {
+                        return application.id == service.application;
+                    });
+
+                    return application;
+                })
+                .then(function(application) {
                     if(application == null) {
                         return res
                             .status(404)
