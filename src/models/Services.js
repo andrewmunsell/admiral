@@ -76,10 +76,14 @@ exports = module.exports = function(config) {
 
                     var service = {
                         id: id,
-                        name: params.name,
                         application: params.application,
+
+                        name: params.name,
+
                         template: params.template,
+
                         state: 'idle',
+                        units: params.units,
 
                         createdAt: moment().toISOString()
                     };
