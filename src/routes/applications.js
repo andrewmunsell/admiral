@@ -6,7 +6,7 @@
 
 var Promise = require('bluebird');
 
-exports = module.exports = function(app, config, Applications, Services) {
+exports = module.exports = function(app, config, Log, Applications, Services) {
     /**
      * Get the applications
      */
@@ -27,6 +27,10 @@ exports = module.exports = function(app, config, Applications, Services) {
                     .json(applications);
             })
             .catch(function(err) {
+                Log.error('There was a problem retrieving the applications.', {
+                    context: err
+                });
+
                 res
                     .status(500)
                     .json({
@@ -86,6 +90,10 @@ exports = module.exports = function(app, config, Applications, Services) {
                         .json(application);
                 })
                 .catch(function(err) {
+                    Log.error('There was a problem retrieving the application.', {
+                        context: err
+                    });
+
                     return res
                         .status(500)
                         .json({
@@ -114,11 +122,44 @@ exports = module.exports = function(app, config, Applications, Services) {
                     .json(services);
             })
             .catch(function(err) {
+                Log.error('There was a problem retrieving the application\'s services.', {
+                    context: err
+                });
+
                 res
                     .status(500)
                     .json({
                         error: 500,
                         message: 'There was a problem retrieving the list of services.'
+                    });
+            })
+            .finally(function() {
+                res.end();
+            });
+    });
+
+    /**
+     * Create a new service for the specified application
+     */
+    app.post('/v1/applications/:id/services', function(req, res) {
+        req.body.application = req.params.id;
+
+        Services.create(req.body)
+            .then(function(service) {
+                res
+                    .header('Cache-Control', 'private, max-age=10')
+                    .json(service);
+            })
+            .catch(function(err) {
+                Log.error('There was a problem creating the application\'s service.', {
+                    context: err
+                });
+
+                res
+                    .status(500)
+                    .json({
+                        error: 500,
+                        message: 'There was a problem creating the application\'s service.'
                     });
             })
             .finally(function() {
@@ -138,6 +179,8 @@ exports = module.exports = function(app, config, Applications, Services) {
                             ok: true
                         });
                 } else {
+                    Log.error('There was a problem deleting the application.');
+
                     res
                         .status(500)
                         .json({
@@ -161,4 +204,4 @@ exports = module.exports = function(app, config, Applications, Services) {
 };
 
 exports['@singleton'] = true;
-exports['@require'] = ['app', 'config', 'models/Applications', 'models/Services'];
+exports['@require'] = ['app', 'config', 'logger', 'models/Applications', 'models/Services'];
