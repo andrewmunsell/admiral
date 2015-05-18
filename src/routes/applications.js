@@ -4,16 +4,23 @@
  * @copyright 2015 WizardApps
  */
 
-var moment = require('moment'),
-    uuid = require('node-uuid'),
-    validate = require('validate.js');
+var Promise = require('bluebird');
 
-exports = module.exports = function(app, config, Applications) {
+exports = module.exports = function(app, config, Applications, Services) {
     /**
      * Get the applications
      */
     app.get('/v1/applications', function(req, res) {
-        Applications.all()
+        Promise.all([Applications.all(), Services.all()])
+            .spread(function(applications, services) {
+                for(var i = 0; i < applications.length; i++) {
+                    applications[i].services = services.filter(function(service) {
+                        return service.application == applications[i].id
+                    });
+                }
+
+                return applications;
+            })
             .then(function(applications) {
                 res
                     .header('Cache-Control', 'private, max-age=60')
@@ -158,4 +165,4 @@ exports = module.exports = function(app, config, Applications) {
 };
 
 exports['@singleton'] = true;
-exports['@require'] = ['app', 'config', 'models/Applications'];
+exports['@require'] = ['app', 'config', 'models/Applications', 'models/Services'];
