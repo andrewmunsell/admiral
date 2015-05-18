@@ -4,7 +4,7 @@
  * @copyright 2015 WizardApps
  */
 
-exports = module.exports = function(app, config, fleet) {
+exports = module.exports = function(app, config, Log, fleet) {
     /**
      * Get the machines in the cluster
      */
@@ -16,6 +16,10 @@ exports = module.exports = function(app, config, fleet) {
                     .json(machines);
             })
             .catch(function(err) {
+                Log.error('There was a problem retrieving the machines.', {
+                    context: err
+                });
+
                 res
                     .status(500)
                     .json({
@@ -30,4 +34,4 @@ exports = module.exports = function(app, config, fleet) {
 };
 
 exports['@singleton'] = true;
-exports['@require'] = ['app', 'config', 'fleet'];
+exports['@require'] = ['app', 'config', 'logger', 'fleet'];

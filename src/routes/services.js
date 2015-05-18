@@ -4,7 +4,7 @@
  * @copyright 2015 WizardApps
  */
 
-exports = module.exports = function(app, config, Services) {
+exports = module.exports = function(app, config, Log, Services) {
     /**
      * Get the services
      */
@@ -16,6 +16,10 @@ exports = module.exports = function(app, config, Services) {
                     .json(services);
             })
             .catch(function(err) {
+                Log.error('There was a problem retrieving the services.', {
+                    context: err
+                });
+
                 res
                     .status(500)
                     .json({
@@ -30,4 +34,4 @@ exports = module.exports = function(app, config, Services) {
 };
 
 exports['@singleton'] = true;
-exports['@require'] = ['app', 'config', 'models/Services'];
+exports['@require'] = ['app', 'config', 'logger', 'models/Services'];
