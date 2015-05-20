@@ -35,9 +35,41 @@ exports = module.exports = function(config) {
          * @param params
          */
         create: function(params) {
+            return Services.set(params, true);
+        },
+
+        /**
+         * Get a single service, or null if the service does not exist.
+         * @param id
+         */
+        get: function(id) {
+            return config.getAsync('/services/' + id)
+                .spread(function(result) {
+                    return JSON.parse(result.node.value);
+                })
+                .catch(function(err) {
+                    if(err.errorCode == 100) {
+                        return null;
+                    } else {
+                        throw new Error('There was a problem fetching the service.');
+                    }
+                });
+        },
+
+        /**
+         * Set the specified service
+         * @param service
+         */
+        set: function(params, create) {
             return Promise.resolve()
                 .then(function() {
                     var constraints = {
+                        id: {
+                            length: {
+                                is: 36
+                            }
+                        },
+
                         name: {
                             presence: true,
                             length: {
@@ -59,6 +91,12 @@ exports = module.exports = function(config) {
                             }
                         },
 
+                        state: {
+                            length: {
+                                maximum: 36
+                            }
+                        },
+
                         units: {
                             numericality: {
                                 onlyInteger: true,
@@ -72,7 +110,13 @@ exports = module.exports = function(config) {
                         throw errors;
                     }
 
-                    var id = uuid.v4();
+                    var id;
+
+                    if(create === true) {
+                        id = uuid.v4();
+                    } else {
+                        id = params.id;
+                    }
 
                     var service = {
                         id: id,
@@ -82,34 +126,25 @@ exports = module.exports = function(config) {
 
                         template: params.template,
 
-                        state: 'idle',
+                        state: params.state ? params.state : 'idle',
                         units: params.units,
 
-                        createdAt: moment().toISOString()
+                        unitFiles: params.unitFiles ? params.unitFiles : [],
+
+                        // Date the service was created
+                        createdAt: params.createdAt ? params.createdAt : moment().toISOString(),
+
+                        // Date the service's properties were updated
+                        updatedAt: moment().toISOString(),
+
+                        // Date the service state changed last
+                        changedAt: null
                     };
 
                     return config.setAsync('/services/' + id, JSON.stringify(service));
                 })
                 .spread(function(result) {
                     return JSON.parse(result.node.value);
-                });
-        },
-
-        /**
-         * Get a single service, or null if the service does not exist.
-         * @param id
-         */
-        get: function(id) {
-            return config.getAsync('/services/' + id)
-                .spread(function(result) {
-                    return JSON.parse(result.node.value);
-                })
-                .catch(function(err) {
-                    if(err.errorCode == 100) {
-                        return null;
-                    } else {
-                        throw new Error('There was a problem fetching the service.');
-                    }
                 });
         },
 
