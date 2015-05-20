@@ -15,6 +15,9 @@ exports = module.exports = function() {
     // Services
     IoC.create('routes/services');
 
+    // Deployments
+    IoC.create('routes/deployments');
+
     // Machines
     IoC.create('routes/machines');
 };
