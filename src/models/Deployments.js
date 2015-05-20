@@ -15,11 +15,38 @@ exports = module.exports = function (config) {
          * Retrieve all deployments
          */
         all: function () {
+            return Deployments.whereServiceIs(null);
+        },
+
+        /**
+         * Retrieve all deployments by the specified service
+         * @param service
+         */
+        whereServiceIs: function(service) {
+            if(typeof(service) == 'string') {
+                service = [service];
+            }
+
             return config.getAsync('/deployments', {recursive: true})
                 .spread(function (result) {
-                    return Promise.all((result.node.nodes || [] ).map(function (node) {
-                        return config.getAsync(node.key.replace(/^\/admiral/ig, ''), { recursive: true });
-                    }));
+                    return Promise.all((result.node.nodes || [] )
+                            .filter(function(node) {
+                                if(service) {
+                                    for(var i = 0; i < service.length; i++) {
+                                        if(node.key.indexOf(service[i]) > -1) {
+                                            return true;
+                                        }
+                                    }
+
+                                    return false;
+                                } else {
+                                    return true;
+                                }
+                            })
+                            .map(function (node) {
+                                return config.getAsync(node.key.replace(/^\/admiral/ig, ''), { recursive: true });
+                            })
+                    );
                 })
                 .then(function(dirs) {
                     var results = [];
