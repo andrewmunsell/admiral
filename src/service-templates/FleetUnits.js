@@ -44,7 +44,7 @@ module.exports = exports = function(Services) {
                         var id = uuid.v4();
 
                         service.unitFiles.push({
-                            id: id,
+                            id:    id,
                             value: parameters.unitFiles[i]
                         });
                     }
@@ -53,7 +53,7 @@ module.exports = exports = function(Services) {
                 })
                 // Register the application with the router, if requested
                 .then(function (service) {
-                    if(parameters.router && parameters.router.ports) {
+                    if (parameters.router && parameters.router.ports) {
                         var template = Handlebars.compile(
                             fs.readFileSync(__dirname + '/../../resources/unit-files/router-register@.service.template',
                                 {
@@ -62,11 +62,11 @@ module.exports = exports = function(Services) {
                             )
                         );
 
-                        for(var i = 0; i < parameters.router.ports.length; i++) {
+                        for (var i = 0; i < parameters.router.ports.length; i++) {
                             var id = uuid.v4();
 
                             service.unitFiles.push({
-                                id: id,
+                                id:    id,
                                 value: template({
                                     service: service,
 
