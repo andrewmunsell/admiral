@@ -1,0 +1,15 @@
+[Unit]
+Description=Registration Service for {{ service.name }}
+
+BindsTo={{ unitFile.parent.id }}@%i.service
+
+After={{ unitFile.parent.id }}@%i.service
+
+[Service]
+User=core
+
+ExecStart=/bin/bash -c 'while true; do etcdctl set /vulcand/backends/{{ unitFile.parent.id }}/servers/{{ unitFile.parent.id }}.%i "{\\"URL\\": \\"http://`docker inspect --format=\"\{\{.NetworkSettings.IPAddress\}\}\" {{ unitFile.parent.id }}.%i`:{{ port }}\\"}" --ttl 30; sleep 20; done'
+ExecStop=/bin/bash -c 'etcdctl rm /vulcand/backends/{{ unitFile.parent.id }}/servers/{{ unitFile.parent.id }}.%i'
+
+[X-Fleet]
+MachineOf={{ unitFile.parent.id }}@%i.service
