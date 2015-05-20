@@ -20,7 +20,7 @@ exports = module.exports = function (config) {
 
         /**
          * Retrieve all deployments by the specified service
-         * @param service
+         * @param {string} service
          */
         whereServiceIs: function(service) {
             if(typeof(service) == 'string') {
@@ -71,6 +71,72 @@ exports = module.exports = function (config) {
                     } else {
                         return null;
                     }
+                });
+        },
+
+        /**
+         * Create a new deployment
+         * @param params
+         */
+        create: function(params) {
+            return Deployments.set(params, true);
+        },
+
+        /**
+         * Set the specified deployment
+         * @param params
+         */
+        set: function(params, create) {
+            return Promise.resolve()
+                .then(function() {
+                    var constraints = {
+                        id: {
+                            length: {
+                                is: 36
+                            }
+                        },
+
+                        service: {
+                            presence: true,
+                            length: {
+                                is: 36
+                            }
+                        },
+
+                        units: {
+                            presence: true
+                        }
+                    };
+
+                    var errors = validate(params, constraints);
+                    if(errors) {
+                        throw errors;
+                    }
+
+                    var id;
+
+                    if(create === true) {
+                        id = uuid.v4();
+                    } else {
+                        id = params.id;
+                    }
+
+                    var deployment = {
+                        id: id,
+
+                        units: params.units,
+
+                        // Date the deployment was created
+                        createdAt: params.createdAt ? params.createdAt : moment().toISOString(),
+
+                        // Date the deployment's properties were updated
+                        updatedAt: moment().toISOString()
+                    };
+
+                    return config.setAsync('/deployments/' + params.service + '/' + id, JSON.stringify(deployment));
+                })
+                .spread(function(result) {
+                    return JSON.parse(result.node.value);
                 });
         }
     };
