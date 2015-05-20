@@ -4,18 +4,21 @@
  * @copyright 2015 WizardApps
  */
 
-exports = module.exports = function(app, config, Log, Services) {
+var IoC = require('electrolyte'),
+toCase  = require('to-case');
+
+exports = module.exports = function (app, config, Log, Services) {
     /**
      * Get the services
      */
-    app.get('/v1/services', function(req, res) {
+    app.get('/v1/services', function (req, res) {
         Services.all()
-            .then(function(services) {
+            .then(function (services) {
                 res
                     .header('Cache-Control', 'private, max-age=60')
                     .json(services);
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 Log.error('There was a problem retrieving the services.', {
                     context: err
                 });
@@ -23,11 +26,11 @@ exports = module.exports = function(app, config, Log, Services) {
                 res
                     .status(500)
                     .json({
-                        error: 500,
+                        error:   500,
                         message: 'There was a problem retrieving the list of services.'
                     });
             })
-            .finally(function() {
+            .finally(function () {
                 res.end();
             });
     });
@@ -35,24 +38,24 @@ exports = module.exports = function(app, config, Log, Services) {
     /**
      * Change a service's state
      */
-    app.post('/v1/services/:id/state', function(req, res) {
+    app.post('/v1/services/:id/state', function (req, res) {
         Services.get(req.params.id)
-            .then(function(service) {
+            .then(function (service) {
                 if (service == null) {
                     return res
                         .status(404)
                         .json({
-                            error: 404,
+                            error:   404,
                             message: 'The specified service does not exist.'
                         });
                 }
 
                 return service;
             })
-            .then(function(service) {
+            .then(function (service) {
                 var ServiceTemplate = IoC.create('service-templates/' + toCase.pascal(service.template));
 
-                switch(req.params.state) {
+                switch (req.body.state) {
                     case 'start':
                         return ServiceTemplate.start(service);
                     case 'stop':
@@ -63,29 +66,30 @@ exports = module.exports = function(app, config, Log, Services) {
                         return res
                             .status(400)
                             .json({
-                                error: 400,
+                                error:   400,
                                 message: 'An invalid state was specified.'
                             });
                 }
             })
-            .then(function(service) {
+            .then(function (deployment) {
                 return res
                     .header('Cache-Control', 'no-cache')
-                    .json(service);
+                    .json(deployment);
             })
-            .catch(function(err) {
+            .catch(function (err) {
                 Log.error('There was a problem changing the service\'s state.', {
-                    context: err
+                    message: err.message,
+                    stack:   err.stack
                 });
 
                 res
                     .status(500)
                     .json({
-                        error: 500,
-                        message: 'There was a problem retrieving the list of services.'
+                        error:   500,
+                        message: 'There was a problem changing the service\'s state.'
                     });
             })
-            .finally(function() {
+            .finally(function () {
                 res.end();
             });
     });
