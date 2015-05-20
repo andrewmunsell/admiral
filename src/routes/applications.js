@@ -4,7 +4,9 @@
  * @copyright 2015 WizardApps
  */
 
-var Promise = require('bluebird');
+var IoC = require('electrolyte'),
+    Promise = require('bluebird'),
+    toCase = require('to-case');
 
 exports = module.exports = function(app, config, Log, Applications, Services) {
     /**
@@ -15,7 +17,12 @@ exports = module.exports = function(app, config, Log, Applications, Services) {
             .spread(function(applications, services) {
                 for(var i = 0; i < applications.length; i++) {
                     applications[i].services = services.filter(function(service) {
-                        return service.application == applications[i].id
+                        // Only get services for the requested application, and only get
+                        // terminated services if they were termined in the last 5 minutes
+                        return service.application == applications[i].id &&
+                            !(service.state == 'terminated' && service.changedAt &&
+                                moment(service.changedAt).isBefore(moment().subtract(5, 'minutes'))
+                            );
                     });
                 }
 
@@ -69,13 +76,6 @@ exports = module.exports = function(app, config, Log, Applications, Services) {
                     return Promise.all([ application, Services.all() ]);
                 })
                 .spread(function(application, services) {
-                    application.services = services.filter(function(service) {
-                        return application.id == service.application;
-                    });
-
-                    return application;
-                })
-                .then(function(application) {
                     if(application == null) {
                         return res
                             .status(404)
@@ -84,7 +84,14 @@ exports = module.exports = function(app, config, Log, Applications, Services) {
                                 message: 'The specified application does not exist.'
                             });
                     }
+                    
+                    application.services = services.filter(function(service) {
+                        return application.id == service.application;
+                    });
 
+                    return application;
+                })
+                .then(function(application) {
                     return res
                         .header('Cache-Control', 'private, max-age=60')
                         .json(application);
@@ -146,13 +153,19 @@ exports = module.exports = function(app, config, Log, Applications, Services) {
 
         Services.create(req.body)
             .then(function(service) {
+                var ServiceTemplate = IoC.create('service-templates/' + toCase.pascal(req.body.template));
+
+                return ServiceTemplate.create(service, req.body);
+            })
+            .then(function(service) {
                 res
                     .header('Cache-Control', 'private, max-age=10')
                     .json(service);
             })
             .catch(function(err) {
                 Log.error('There was a problem creating the application\'s service.', {
-                    context: err
+                    message: err.message,
+                    stack: err.stack
                 });
 
                 res
