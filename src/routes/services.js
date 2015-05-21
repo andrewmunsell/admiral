@@ -55,13 +55,21 @@ exports = module.exports = function (app, config, Log, Services) {
             .then(function (service) {
                 var ServiceTemplate = IoC.create('service-templates/' + toCase.pascal(service.template));
 
+                Log.info('Changing the state of a service.', {
+                    service: service.id,
+                    state: req.body.state
+                });
+
                 switch (req.body.state) {
-                    case 'start':
+                    case 'starting':
                         return ServiceTemplate.start(service);
-                    case 'stop':
+                        break;
+                    case 'stopping':
                         return ServiceTemplate.stop(service);
-                    case 'terminate':
+                        break;
+                    case 'terminating':
                         return ServiceTemplate.terminate(service);
+                        break;
                     default:
                         return res
                             .status(400)
@@ -69,6 +77,7 @@ exports = module.exports = function (app, config, Log, Services) {
                                 error:   400,
                                 message: 'An invalid state was specified.'
                             });
+                        break;
                 }
             })
             .then(function (deployment) {
@@ -79,7 +88,8 @@ exports = module.exports = function (app, config, Log, Services) {
             .catch(function (err) {
                 Log.error('There was a problem changing the service\'s state.', {
                     message: err.message,
-                    stack:   err.stack
+                    stack:   err.stack,
+                    context: err
                 });
 
                 res
