@@ -5,7 +5,8 @@
     "repository": "https://github.com/andrewmunsell/admiral",
 
     "scripts": {
-        "start": "node src/index.js"
+        "start": "node src/index.js",
+        "postinstall": "cd public && npm install && npm run-script build"
     },
 
     "engines": {
