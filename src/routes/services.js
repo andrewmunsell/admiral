@@ -85,7 +85,7 @@ exports = module.exports = function (app, config, Log, Services) {
             .then(function(service) {
                 // Delete all deployments
                 return Promise.all([
-                    config.rmdirAsync('/deployments/' + service.id),
+                    config.rmdirAsync('/deployments/' + service.id, { recursive: true }),
                     Services.del(service.id)
                 ]);
             })
@@ -107,6 +107,11 @@ exports = module.exports = function (app, config, Log, Services) {
                 }
             })
             .catch(function(err) {
+                Log.error('There was a problem deleting the service.', {
+                    message: err.message,
+                    stack: err.stack
+                });
+
                 res
                     .status(404)
                     .json({
