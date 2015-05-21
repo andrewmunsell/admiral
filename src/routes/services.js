@@ -122,7 +122,7 @@ exports = module.exports = function (app, config, Log, Services) {
     /**
      * Change a service's state
      */
-    app.post('/v1/services/:id/state', function (req, res) {
+    app.put('/v1/services/:id/state', function (req, res) {
         Services.get(req.params.id)
             .then(function (service) {
                 if (service == null) {
