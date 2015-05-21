@@ -49,6 +49,16 @@ exports = module.exports = function(nconf) {
             arguments[0] = nconf.get('ns') + arguments[0];
 
             return _etcd.mkdir.apply(_etcd, arguments);
+        },
+
+        /**
+         * Remove a directory
+         * @returns {*}
+         */
+        rmdir: function() {
+            arguments[0] = nconf.get('ns') + arguments[0];
+
+            return _etcd.rmdir.apply(_etcd, arguments);
         }
     });
 };

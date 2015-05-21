@@ -75,6 +75,51 @@ exports = module.exports = function (app, config, Log, Services) {
     });
 
     /**
+     * Destroy the specified service
+     */
+    app.delete('/v1/services/:id', function(req, res) {
+        Services.get(req.params.id)
+            .then(function(service) {
+                return Services.terminate(service.id);
+            })
+            .then(function(service) {
+                // Delete all deployments
+                return Promise.all([
+                    config.rmdirAsync('/deployments/' + service.id),
+                    Services.del(service.id)
+                ]);
+            })
+            .spread(function(delResult, result) {
+                if(result) {
+                    res
+                        .json({
+                            ok: true
+                        });
+                } else {
+                    Log.error('There was a problem deleting the service.');
+
+                    res
+                        .status(500)
+                        .json({
+                            error: 500,
+                            message: 'There was a problem deleting the specified service.'
+                        });
+                }
+            })
+            .catch(function(err) {
+                res
+                    .status(404)
+                    .json({
+                        error: 404,
+                        message: 'The specified service could not be found.'
+                    });
+            })
+            .finally(function() {
+                res.end();
+            });
+    });
+
+    /**
      * Change a service's state
      */
     app.post('/v1/services/:id/state', function (req, res) {
