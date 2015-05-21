@@ -7,7 +7,7 @@
 var Promise    = require('bluebird');
 
 var fs     = Promise.promisifyAll(require('fs')),
-Handlebars = require('handlebars'),
+mustache = require('mustache'),
 moment     = require('moment'),
 validate   = require('validate.js'),
 uuid       = require('node-uuid');
@@ -48,7 +48,13 @@ module.exports = exports = function (fleetctl, Services, Deployments) {
 
                         service.unitFiles.push({
                             id:    id,
-                            value: parameters.unitFiles[i]
+                            value: mustache.render("{{=<% %>=}}\n" + parameters.unitFiles[i], {
+                                unitFile: {
+                                    id: id
+                                },
+
+                                service: service
+                            })
                         });
                     }
 
@@ -57,12 +63,10 @@ module.exports = exports = function (fleetctl, Services, Deployments) {
                 // Register the application with the router, if requested
                 .then(function (service) {
                     if (parameters.router && parameters.router.ports) {
-                        var template = Handlebars.compile(
-                            fs.readFileSync(__dirname + '/../../resources/unit-files/router-register@.service.template',
-                                {
-                                    encoding: 'utf8'
-                                }
-                            )
+                        var template = fs.readFileSync(__dirname + '/../../resources/unit-files/router-register@.service.template',
+                            {
+                                encoding: 'utf8'
+                            }
                         );
 
                         for (var i = 0; i < parameters.router.ports.length; i++) {
@@ -70,7 +74,7 @@ module.exports = exports = function (fleetctl, Services, Deployments) {
 
                             service.unitFiles.push({
                                 id:    id,
-                                value: template({
+                                value: mustache.render(template, {
                                     service: service,
 
                                     unitFile: {
