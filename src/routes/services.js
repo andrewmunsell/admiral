@@ -36,6 +36,45 @@ exports = module.exports = function (app, config, Log, Services) {
     });
 
     /**
+     * Get the service with the specified ID
+     */
+    app.get('/v1/services/:id', function(req, res) {
+        Services.get(req.params.id)
+            .then(function(service) {
+                if(service == null) {
+                    return res
+                        .status(404)
+                        .json({
+                            error: 404,
+                            message: 'The specified service does not exist.'
+                        });
+                }
+
+                return service;
+            })
+            .then(function(service) {
+                return res
+                    .header('Cache-Control', 'private, max-age=60')
+                    .json(service);
+            })
+            .catch(function(err) {
+                Log.error('There was a problem retrieving the service.', {
+                    context: err
+                });
+
+                return res
+                    .status(500)
+                    .json({
+                        error: 500,
+                        message: 'There was a problem retrieving the service.'
+                    })
+            })
+            .finally(function() {
+                res.end();
+            });
+    });
+
+    /**
      * Change a service's state
      */
     app.post('/v1/services/:id/state', function (req, res) {
