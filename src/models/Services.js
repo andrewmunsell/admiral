@@ -241,7 +241,7 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
                         throw new Error('A deployment for this service is already running and cannot be started again.');
                     } else if(deployment != null && state == 'partially running' && startPartial) {
                         return Promise.resolve(deployment);
-                    } else if (deployment != null && (state == 'initialized' || state == 'terminated' || state == 'failed')) {
+                    } else if (deployment != null && (state == 'stopped' || state == 'initialized' || state == 'terminated' || state == 'failed')) {
                         return Promise.resolve(deployment);
                     } else {
                         throw new Error('This service cannot be started: currently in the ' + state + ' state.');
