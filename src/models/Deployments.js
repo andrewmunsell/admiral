@@ -304,58 +304,6 @@ exports = module.exports = function (config, fleetctl, ServiceGetter) {
         },
 
         /**
-         * Submit the specified deployment to Fleet
-         * @param id
-         */
-        submit: function (id) {
-            return Promise.resolve(id)
-                .then(function (deployment) {
-                    if (typeof(deployment) == 'object') {
-                        return deployment;
-                    } else {
-                        return Deployments.get(deployment);
-                    }
-                })
-                .then(function (deployment) {
-                    return Promise.all([
-                        deployment,
-
-                        ServiceGetter.get(deployment.service)
-                    ]);
-                })
-                .spread(function (deployment, service) {
-                    // Get the unit files and write them to temporary files
-                    // Store the unit files into a temporary directory so that they can
-                    // be submitted to Fleet.
-                    var unitFiles = service.unitFiles;
-
-                    return Promise.all(unitFiles.map(function (unitFile) {
-                        var file = '/tmp/' + unitFile.id + '@.service';
-
-                        return fs.writeFileAsync(file, unitFile.value);
-                    }))
-                        .then(function () {
-                            return [deployment, service];
-                        });
-                })
-                .spread(function (deployment, service) {
-                    // Submit the new units
-                    return fleetctl
-                        .submitAsync(service.unitFiles.map(function (unitFile) {
-                            return '/tmp/' + unitFile.id + '@.service';
-                        }))
-                        .then(function () {
-                            return deployment;
-                        });
-                })
-                .then(function (deployment) {
-                    deployment.state = 'initialized';
-
-                    return Deployments.set(deployment);
-                });
-        },
-
-        /**
          * Start a deployment with the specified ID, optionally starting any partially running services
          * @param id
          */
@@ -405,12 +353,25 @@ exports = module.exports = function (config, fleetctl, ServiceGetter) {
                         }
                     }
 
-                    return fleetctl.startAsync(unitsToLaunch, {})
-                        .then(function() {
-                            deployment.state = 'running';
+                    return Promise.all([deployment, fleetctl.startAsync(unitsToLaunch, {})]);
+                })
+                .spread(function(deployment, result) {
+                    return Promise.all([deployment, Deployments.submittedUnits(deployment)]);
+                })
+                .spread(function(deployment, units) {
+                    var activeUnits = units.filter(function(unit) {
+                        return unit.active == 'active';
+                    });
 
-                            return Deployments.set(deployment);
-                        });
+                    if(activeUnits.length == 0) {
+                        deployment.state = 'failed';
+                    } else if(activeUnits.length < units.length) {
+                        deployment.state = 'partially running';
+                    } else {
+                        deployment.state = 'running;'
+                    }
+
+                    return Deployments.set(deployment);
                 });
         },
 
@@ -461,7 +422,7 @@ exports = module.exports = function (config, fleetctl, ServiceGetter) {
                     return fleetctl.stopAsync(runningUnits, {})
                         .then(function() {
                             if(runningUnits.length == units.length) {
-                                deployment.state = 'initialized';
+                                deployment.state = 'stopped';
                             } else {
                                 deployment.state = 'partially running';
                             }

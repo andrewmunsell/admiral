@@ -159,6 +159,59 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
         },
 
         /**
+         * Submit the unit file templates, deleting any old ones if applicable.
+         * @param id
+         */
+        submit: function(id) {
+            return Promise.resolve(id)
+                // Check any existing units or deployments
+                .then(function (id) {
+                    return Services.get(id);
+                })
+                .then(function (service) {
+                    // Get the unit files and remove the existing templates if they are already loaded into the cluster
+                    var unitFiles = service.unitFiles;
+
+                    return fleetctl.list_unit_filesAsync()
+                        .then(function(loadedUnits) {
+                            var unitFileIds = unitFiles.map(function(unitFile) {
+                                return unitFile.id + '@.service';
+                            });
+
+                            var unitsToDestroy = loadedUnits
+                                .filter(function(loadedUnit) {
+                                    return unitFileIds.indexOf(loadedUnit.unit) > -1;
+                                })
+                                .map(function(loadedUnit) {
+                                    return loadedUnit.unit;
+                                });
+
+                            return fleetctl.destroy(unitsToDestroy);
+                        })
+                        .then(function() {
+                            return Promise.all(unitFiles.map(function (unitFile) {
+                                var file = '/tmp/' + unitFile.id + '@.service';
+
+                                return fs.writeFileAsync(file, unitFile.value);
+                            }))
+                                .then(function () {
+                                    return service;
+                                });
+                        });
+                })
+                .then(function (service) {
+                    // Submit the new units
+                    return fleetctl
+                        .submitAsync(service.unitFiles.map(function (unitFile) {
+                            return '/tmp/' + unitFile.id + '@.service';
+                        }))
+                        .then(function () {
+                            return service;
+                        });
+                });
+        },
+
+        /**
          * Start the specified service by creating a new deployment, or optionally allow for the system to start a
          * partially running service.
          *
@@ -175,30 +228,27 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
                     return Promise.all([service, deployment, Deployments.state(deployment)]);
                 })
                 .spread(function(service, deployment, state) {
-                    if(deployment == null || state == 'terminated') {
+                    if(deployment == null) {
                         return Deployments
                             .create({
                                 service: service.id,
-                                state: 'uninitialized',
+                                state: 'initialized',
 
                                 units: service.unitFiles.length,
                                 cardinality: service.units
-                            })
-                            .then(function(deployment) {
-                                return Deployments.submit(deployment);
                             });
                     } else if(deployment != null && state == 'running') {
                         throw new Error('A deployment for this service is already running and cannot be started again.');
                     } else if(deployment != null && state == 'partially running' && startPartial) {
                         return Promise.resolve(deployment);
-                    } else if (deployment != null && state == 'initialized') {
+                    } else if (deployment != null && (state == 'initialized' || state == 'terminated' || state == 'failed')) {
                         return Promise.resolve(deployment);
                     } else {
                         throw new Error('This service cannot be started: currently in the ' + state + ' state.');
                     }
                 })
                 .then(function(deployment) {
-                    return Services.get(id)
+                    return Services.submit(id)
                         .then(function(service) {
                             service.state = 'starting';
 
@@ -214,7 +264,7 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
                 .then(function(deployment) {
                     return Services.get(id)
                         .then(function(service) {
-                            service.state = 'running';
+                            service.state = deployment.state;
 
                             return Services.set(service);
                         })
@@ -241,7 +291,8 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
                     service.state = 'stopping';
 
                     deployments = deployments.filter(function(deployment) {
-                        return deployment.state == 'running' || deployment.state == 'partially running';
+                        return deployment.state != 'stopped' && deployment.state != 'stopping' &&
+                            deployment.state != 'terminated';
                     });
 
                     return Promise.all([service, deployments]);
@@ -262,13 +313,14 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
         },
 
         /**
-         * Terminate the specified service
+         * Unload the units for all deployments in this services, but do not destroy the template unit files
+         * or delete the service
          * @param id
          */
-        terminate: function(id) {
+        unload: function(id) {
             return Promise.all([Services.get(id), Deployments.whereServiceIs(id)])
                 .spread(function(service, deployments) {
-                    service.state = 'terminating';
+                    service.state = 'unloading';
 
                     return Promise.all([service, deployments]);
                 })
@@ -280,6 +332,24 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
                 })
                 .then(function(deployments) {
                     return Services.get(id);
+                })
+                .then(function(service) {
+                    service.state = 'initialized';
+
+                    return Services.set(service);
+                });
+        },
+
+        /**
+         * Terminate the specified service, including destroying all of the deployments and template unit files
+         * @param id
+         */
+        terminate: function(id) {
+            return Deployments.unload(id)
+                .then(function(service) {
+                    service.state = 'terminating';
+
+                    return Services.set(service);
                 })
                 .then(function(service) {
                     // Now, destroy the service unit file templates from Fleet
