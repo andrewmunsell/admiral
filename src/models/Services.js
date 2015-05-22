@@ -186,7 +186,7 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
                                     return loadedUnit.unit;
                                 });
 
-                            return fleetctl.destroy(unitsToDestroy);
+                            return fleetctl.destroyAsync(unitsToDestroy);
                         })
                         .then(function() {
                             return Promise.all(unitFiles.map(function (unitFile) {
