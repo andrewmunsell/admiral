@@ -156,6 +156,9 @@ exports = module.exports = function (app, config, Log, Services) {
                     case 'stopping':
                         return ServiceTemplate.stop(service);
                         break;
+                    case 'unloading':
+                        return ServiceTemplate.unload(service);
+                        break;
                     case 'terminating':
                         return ServiceTemplate.terminate(service);
                         break;

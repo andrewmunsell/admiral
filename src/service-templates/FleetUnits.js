@@ -110,6 +110,14 @@ module.exports = exports = function (fleetctl, Services, Deployments) {
         },
 
         /**
+         * Unload the specified service and unschedule all of its units
+         * @param service
+         */
+        unload: function(service) {
+            return Services.unload(service.id);
+        },
+
+        /**
          * Terminate the specified service
          * @param service
          */
