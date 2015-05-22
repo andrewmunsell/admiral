@@ -368,7 +368,7 @@ exports = module.exports = function (config, fleetctl, ServiceGetter) {
                     } else if(activeUnits.length < units.length) {
                         deployment.state = 'partially running';
                     } else {
-                        deployment.state = 'running;'
+                        deployment.state = 'running';
                     }
 
                     return Deployments.set(deployment);
