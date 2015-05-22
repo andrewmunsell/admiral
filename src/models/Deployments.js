@@ -360,7 +360,7 @@ exports = module.exports = function (config, fleetctl, ServiceGetter) {
                 })
                 .spread(function(deployment, units) {
                     var activeUnits = units.filter(function(unit) {
-                        return unit.active == 'active';
+                        return unit.active != 'failed';
                     });
 
                     if(activeUnits.length == 0) {
