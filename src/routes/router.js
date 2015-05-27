@@ -4,6 +4,8 @@
  * @copyright 2015 WizardApps
  */
 
+var uuid = require('node-uuid');
+
 exports = module.exports = function(app, config, Log) {
     /**
      * Get all of the current backends for the router
@@ -78,6 +80,44 @@ exports = module.exports = function(app, config, Log) {
                             message: 'There was a problem fetching the frontends.'
                         });
                 }
+            });
+    });
+
+    /**
+     * Create a new frontend
+     */
+    app.post('/v1/router/frontends', function(req, res) {
+        var body = req.body;
+        delete body.id;
+
+        var id = uuid.v4();
+
+        return config.setAsync(false, '/vulcand/frontends/' + id + '/frontend', JSON.stringify(body))
+            .spread(function(result) {
+                var frontend = JSON.parse(result.node.value);
+                frontend.id = id;
+
+                res
+                    .json(frontend);
+            });
+    });
+
+    /**
+     * Edit and replace the specified frontend
+     */
+    app.post('/v1/router/frontends/:frontendId', function(req, res) {
+        var body = req.body;
+        var id = body.id;
+        
+        delete body.id;
+
+        return config.setAsync(false, '/vulcand/frontends/' + id + '/frontend', JSON.stringify(body))
+            .spread(function(result) {
+                var frontend = JSON.parse(result.node.value);
+                frontend.id = id;
+
+                res
+                    .json(frontend);
             });
     });
 };
