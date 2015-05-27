@@ -10,15 +10,13 @@ var Promise = require('bluebird'),
 exports = module.exports = function(nconf) {
     var _etcd = new Etcd(nconf.get('h'), nconf.get('p'));
 
-    return Promise.promisifyAll({
+    var etcd = {
         /**
          * Get a key, prefixing the key with the global namespace
          * @returns {*}
          */
         get: function() {
-            arguments[0] = nconf.get('ns') + arguments[0];
-
-            return _etcd.get.apply(_etcd, arguments);
+            return _etcd.get.apply(_etcd, etcd._processArguments(arguments));
         },
 
         /**
@@ -26,9 +24,7 @@ exports = module.exports = function(nconf) {
          * @returns {*}
          */
         set: function() {
-            arguments[0] = nconf.get('ns') + arguments[0];
-
-            return _etcd.set.apply(_etcd, arguments);
+            return _etcd.set.apply(_etcd, etcd._processArguments(arguments));
         },
 
         /**
@@ -36,9 +32,7 @@ exports = module.exports = function(nconf) {
          * @returns {*}
          */
         del: function() {
-            arguments[0] = nconf.get('ns') + arguments[0];
-
-            return _etcd.del.apply(_etcd, arguments);
+            return _etcd.del.apply(_etcd, etcd._processArguments(arguments));
         },
 
         /**
@@ -46,9 +40,7 @@ exports = module.exports = function(nconf) {
          * @returns {*}
          */
         mkdir: function() {
-            arguments[0] = nconf.get('ns') + arguments[0];
-
-            return _etcd.mkdir.apply(_etcd, arguments);
+            return _etcd.mkdir.apply(_etcd, etcd._processArguments(arguments));
         },
 
         /**
@@ -56,11 +48,30 @@ exports = module.exports = function(nconf) {
          * @returns {*}
          */
         rmdir: function() {
-            arguments[0] = nconf.get('ns') + arguments[0];
+            return _etcd.rmdir.apply(_etcd, etcd._processArguments(arguments));
+        },
 
-            return _etcd.rmdir.apply(_etcd, arguments);
+        /**
+         * Process the specified arguments, performing the prefixing if requested
+         * @param args
+         * @returns {*}
+         * @private
+         */
+        _processArguments: function(args) {
+            var prefix = true;
+
+            if(typeof(args[0]) == 'boolean') {
+                prefix = !!args[0];
+                args = Array.prototype.slice.call(args, 1);
+            }
+
+            args[0] = (prefix ? nconf.get('ns') : '') + args[0];
+
+            return args;
         }
-    });
+    };
+
+    return Promise.promisifyAll(etcd);
 };
 
 exports['@singleton'] = true;
