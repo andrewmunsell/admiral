@@ -107,8 +107,8 @@ exports = module.exports = function(app, config, Log) {
      */
     app.post('/v1/router/frontends/:frontendId', function(req, res) {
         var body = req.body;
-        var id = body.id;
-        
+        var id = req.params.frontendId;
+
         delete body.id;
 
         return config.setAsync(false, '/vulcand/frontends/' + id + '/frontend', JSON.stringify(body))
@@ -118,6 +118,21 @@ exports = module.exports = function(app, config, Log) {
 
                 res
                     .json(frontend);
+            });
+    });
+
+    /**
+     * Delete the specified frontend
+     */
+    app.delete('/v1/router/frontends/:frontendId', function(req, res) {
+        var id = req.params.frontendId;
+
+        return config.delAsync(false, '/vulcand/frontends/' + id, { recursive: true })
+            .spread(function(result) {
+                res
+                    .json({
+                        ok: true
+                    });
             });
     });
 };
