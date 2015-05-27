@@ -345,7 +345,7 @@ exports = module.exports = function(config, fleetctl, ServiceGetter, Deployments
          * @param id
          */
         terminate: function(id) {
-            return Deployments.unload(id)
+            return Services.unload(id)
                 .then(function(service) {
                     service.state = 'terminating';
 
