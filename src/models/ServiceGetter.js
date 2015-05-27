@@ -44,7 +44,7 @@ exports = module.exports = function(config, fleetctl) {
                     if(err.errorCode == 100) {
                         return null;
                     } else {
-                        throw new Error('There was a problem fetching the service.');
+                        throw new Error(err.message || 'There was a problem fetching the service.');
                     }
                 });
         }
