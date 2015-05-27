@@ -74,6 +74,7 @@ module.exports = exports = function (fleetctl, Services, Deployments) {
 
                             service.unitFiles.push({
                                 id:    id,
+                                port: parameters.router.ports[i],
                                 value: mustache.render(template, {
                                     service: service,
 
