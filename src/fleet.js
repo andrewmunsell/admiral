@@ -13,6 +13,8 @@ exports = module.exports = function(nconf) {
     if(nconf.get('t')) {
         options.tunnel = nconf.get('t');
         options['ssh-username'] = nconf.get('tunnel-username');
+    } else {
+        options.endpoint = 'http://' + nconf.get('h') + ':' + nconf.get('p');
     }
 
     var fleetctl = new Fleetctl(options);
