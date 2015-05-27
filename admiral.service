@@ -1,0 +1,18 @@
+[Unit]
+Description=Admiral
+
+Requires=etcd.service
+Requires=docker.service
+
+After=etcd.service
+After=docker.service
+
+[Service]
+User=core
+
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill admiral
+ExecStartPre=-/usr/bin/docker rm admiral
+ExecStartPre=/usr/bin/docker pull andrewmunsell/admiral
+ExecStart=/usr/bin/docker run --name admiral -p 80 andrewmunsell/admiral npm start --h=172.17.42.1 --p=4001
+ExecStop=/usr/bin/docker kill admiral
