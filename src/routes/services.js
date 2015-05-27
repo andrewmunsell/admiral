@@ -15,7 +15,6 @@ exports = module.exports = function (app, config, Log, Services) {
         Services.all()
             .then(function (services) {
                 res
-                    .header('Cache-Control', 'private, max-age=60')
                     .json(services);
             })
             .catch(function (err) {
@@ -54,7 +53,6 @@ exports = module.exports = function (app, config, Log, Services) {
             })
             .then(function(service) {
                 return res
-                    .header('Cache-Control', 'private, max-age=60')
                     .json(service);
             })
             .catch(function(err) {
