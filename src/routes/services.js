@@ -59,7 +59,8 @@ exports = module.exports = function (app, config, Log, Services) {
             })
             .catch(function(err) {
                 Log.error('There was a problem retrieving the service.', {
-                    context: err
+                    message: err.message,
+                    stack: err.stack
                 });
 
                 return res
