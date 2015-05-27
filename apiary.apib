@@ -1,181 +1,193 @@
 FORMAT: 1A
-HOST: http://polls.apiblueprint.org/
 
 # Admiral
 
 Admiral is a deployment management system for Fleet and CoreOS. Unlike other deployment systems, Admiral also allows for automatic deployment and scaling of Fleet units.
 
-# Polls API Root [/]
+# Configuration
 
-This resource does not have any attributes. Instead it offers the initial
-API affordances in the form of the links in the JSON body.
+Configuration for Admiral is stored directly in Etcd under the namespace specified by the command line parameter `--ns` (the default is `/admiral`). If this namespace is changed after the application has been launched for the first time already, then unexpected behavior will occur, as Admiral will likely believe it was just installed fresh and without any configuration set.
 
-It is recommend to follow the “url” link values,
-[Link](https://tools.ietf.org/html/rfc5988) or Location headers where
-applicable to retrieve resources. Instead of constructing your own URLs,
-to keep your client decoupled from implementation details.
+All configuration keys listed in this section are children of the root namespace. For example, a configuration item listed as `/config/enabled` will be located at `/admiral/config/enabled` with the default namespace.
 
-## Retrieve the Entry Point [GET]
+## API Configuration
+
+Configuration items for the general API.
+
+### Authentication and Registration
+
+#### `/config/registration/enabled`
+
+A boolean indicating whether registration is enabled or not. If the configuration item does not exist, the server will default to disabling registration (i.e. disable registration).
+
+# Admiral API Root [/v1]
+
+This resource simply represents the root of the Admiral API. It provides a basic JSON response as validation that the API server is running.
+
+## Retrieve the API Information [GET]
 
 + Response 200 (application/json)
 
         {
-            "questions_url": "/questions"
+            "name": "Admiral API",
+            "version": 1
         }
 
-## Group Question
+## Group Authentication
 
-Resources related to questions in the API.
+Resources related to authenticating users.
 
-## Question [/questions/{question_id}]
+## Login [/v1/login]
 
-A Question object has the following attributes:
+### Login [POST]
 
-+ question
-+ published_at - An ISO8601 date when the question was published.
-+ url
-+ choices - An array of Choice objects.
+Authenticates a user and returns a token that the client should use for further interactions with the API server.
 
-+ Parameters
-    + question_id (required, number, `1`) ... ID of the Question in form of an integer
-
-### View a Questions Detail [GET]
-
-+ Response 200 (application/json)
-
-                {
-                    "question": "Favourite programming language?",
-                    "published_at": "2014-11-11T08:40:51.620Z",
-                    "url": "/questions/1",
-                    "choices": [
-                        {
-                            "choice": "Swift",
-                            "url": "/questions/1/choices/1",
-                            "votes": 2048
-                        }, {
-                            "choice": "Python",
-                            "url": "/questions/1/choices/2",
-                            "votes": 1024
-                        }, {
-                            "choice": "Objective-C",
-                            "url": "/questions/1/choices/3",
-                            "votes": 512
-                        }, {
-                            "choice": "Ruby",
-                            "url": "/questions/1/choices/4",
-                            "votes": 256
-                        }
-                    ]
-                }
-
-## Choice [/questions/{question_id}/choices/{choice_id}]
-
-+ Parameters
-    + question_id (required, number, `1`) ... ID of the Question in form of an integer
-    + choice_id (required, number, `1`) ... ID of the Choice in form of an integer
-
-### Vote on a Choice [POST]
-
-This action allows you to vote on a question's choice.
-
-+ Response 201
-
-    + Headers
-
-            Location: /questions/1
-
-## Questions Collection [/questions{?page}]
-
-+ Parameters
-    + page (optional, number, `1`) ... The page of questions to return
-
-### List All Questions [GET]
-
-+ Response 200 (application/json)
-
-    + Headers
-
-            Link: </questions?page=2>; rel="next"
-
-    + Body
-
-            [
-                {
-                    "question": "Favourite programming language?",
-                    "published_at": "2014-11-11T08:40:51.620Z",
-                    "url": "/questions/1",
-                    "choices": [
-                        {
-                            "choice": "Swift",
-                            "url": "/questions/1/choices/1",
-                            "votes": 2048
-                        }, {
-                            "choice": "Python",
-                            "url": "/questions/1/choices/2",
-                            "votes": 1024
-                        }, {
-                            "choice": "Objective-C",
-                            "url": "/questions/1/choices/3",
-                            "votes": 512
-                        }, {
-                            "choice": "Ruby",
-                            "url": "/questions/1/choices/4",
-                            "votes": 256
-                        }
-                    ]
-                }
-            ]
-
-### Create a New Question [POST]
-
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
-
-+ question (string) - The question
-+ choices (array[string]) - A collection of choices.
+Requests should be made with a JSON object containing the following items:
 
 + Request (application/json)
 
-            {
-                "question": "Favourite programming language?",
-                "choices": [
-                    "Swift",
-                    "Python",
-                    "Objective-C",
-                    "Ruby"
-                ]
-            }
+                {
+                    "username": "johndoe",
+                    "password": "password"
+                }
 
-+ Response 201 (application/json)
-
-    + Headers
-
-            Location: /questions/2
-
-    + Body
++ Response 200 (application/json)
 
                 {
-                    "question": "Favourite programming language?",
-                    "published_at": "2014-11-11T08:40:51.620Z",
-                    "url": "/questions/2",
-                    "choices": [
-                        {
-                            "choice": "Swift",
-                            "url": "/questions/2/choices/1",
-                            "votes": 0
-                        }, {
-                            "choice": "Python",
-                            "url": "/questions/2/choices/2",
-                            "votes": 0
-                        }, {
-                            "choice": "Objective-C",
-                            "url": "/questions/2/choices/3",
-                            "votes": 0
-                        }, {
-                            "choice": "Ruby",
-                            "url": "/questions/2/choices/4",
-                            "votes": 0
+                    "token": "API token"
+                }
+                
++ Response 401 (application/json)
+
+                {
+                    "error": 401,
+                    "message": "The specified user was invalid."
+                }
+
+## Registration [/v1/register]
+
+### Register [POST]
+
+Registers a user with the specified information, and returns a new token if the registration was successful. Registration must be enabled on the server or this endpoint will return an error.
+
++ Request (application/json)
+
+                {
+                    "username": "johndoe",
+                    "password": "password"
+                }
+
++ Response 200 (application/json)
+
+                {
+                    "token": "API token"
+                }
+                
++ Response 500 (application/json)
+
+                {
+                    "error": 500,
+                    "message": "The server is not accepting registration."
+                }
+
+## Group Apps & Services
+
+## Applications [/v1/applications]
+
+### Get Applications [GET]
+
+Retrieves all of the applications.
+
++ Response 200 (application/json)
+
+                [
+                    {
+                        "id": "Application ID",
+                        "name": "Application name",
+                        "...": "..."
+                    }
+                ]
+
+### Create Application [POST]
+
+Creates a new application with the specified fields.
+
++ Request (application/json)
+
+                {
+                    "name": "Application Name"
+                }
+
++ Response 200 (application/json)
+
+                {
+                    "id": "9ce05e8c-19fe-4872-b4c6-6b6c6a6968e1",
+                    "name": "Application Name"
+                }
+
+## Application [/v1/applications/{application_id}]
+
+### Get Application [GET]
+
+Get the specified application by its ID.
+
++ Response 200 (application/json)
+
+                {
+                    "id": "9ce05e8c-19fe-4872-b4c6-6b6c6a6968e1",
+                    "name": "Application Name"
+                }
+
+### Delete Application [DELETE]
+
+Delete the application with the specified ID.
+
++ Response 200 (application/json)
+
+                {
+                    "ok": true
+                }
+
+## Services [/v1/services]
+
+### Get Services [GET]
+
+Retrieves all of the services.
+
++ Response 200 (application/json)
+
+                [
+                    {
+                        "id": "Service ID",
+                        "name": "Service Name",
+                        "...": "..."
+                    }
+                ]
+
+## Group Cluster
+
+## Machines [/v1/machines]
+
+### Get Machines [GET]
+
+Retrieves the current machines in the cluster.
+
++ Response 200 (application/json)
+
+                [
+                    {
+                        "machine": "Machine ID",
+                        "ip": "192.168.0.1",
+                        "metadata": {
+                            "key": "value"
                         }
-                    ]
+                    }
+                ]
+
++ Response 500 (application/json)
+
+                {
+                    "error": 500,
+                    "message": "There was a problem fetching the machines."
                 }
