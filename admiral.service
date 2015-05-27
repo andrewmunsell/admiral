@@ -17,5 +17,5 @@ TimeoutStartSec=0
 ExecStartPre=-/usr/bin/docker kill admiral
 ExecStartPre=-/usr/bin/docker rm admiral
 ExecStartPre=/usr/bin/docker pull andrewmunsell/admiral
-ExecStart=/usr/bin/docker run --name admiral andrewmunsell/admiral node src/index.js --h=172.17.42.1 --p=4001
+ExecStart=/usr/bin/docker run --name admiral -p 80 andrewmunsell/admiral node src/index.js --h=172.17.42.1 --p=4001
 ExecStop=/usr/bin/docker kill admiral
