@@ -20,6 +20,9 @@ exports = module.exports = function() {
 
     // Machines
     IoC.create('routes/machines');
+
+    // Router
+    IoC.create('routes/router');
 };
 
 exports['@singleton'] = true;
