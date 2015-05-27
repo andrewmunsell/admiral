@@ -29,7 +29,6 @@ exports = module.exports = function (app, config, Log, Applications, Services) {
             })
             .then(function (applications) {
                 res
-                    .header('Cache-Control', 'private, max-age=60')
                     .json(applications);
             })
             .catch(function (err) {
@@ -92,7 +91,6 @@ exports = module.exports = function (app, config, Log, Applications, Services) {
             })
             .then(function (application) {
                 return res
-                    .header('Cache-Control', 'private, max-age=60')
                     .json(application);
             })
             .catch(function (err) {
@@ -124,7 +122,6 @@ exports = module.exports = function (app, config, Log, Applications, Services) {
             })
             .then(function (services) {
                 res
-                    .header('Cache-Control', 'private, max-age=60')
                     .json(services);
             })
             .catch(function (err) {
@@ -158,7 +155,6 @@ exports = module.exports = function (app, config, Log, Applications, Services) {
             })
             .then(function (service) {
                 res
-                    .header('Cache-Control', 'private, max-age=10')
                     .json(service);
             })
             .catch(function (err) {
